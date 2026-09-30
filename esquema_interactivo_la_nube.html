@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Nube y Google Drive - 1º ESO</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts: Fredoka for friendly titles, Inter for body -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .font-display {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+
+        /* Glassmorphism containers */
+        .glass-box {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: rgba(51, 65, 85, 0.55);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: #38bdf8;
+            box-shadow: 0 12px 30px -5px rgba(56, 189, 248, 0.3);
+        }
+
+        /* Floating Cloud background particles */
+        .cloud-particle {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.05);
+            animation: floatCloud 25s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes floatCloud {
+            0% { transform: translateX(-150px) translateY(0); }
+            50% { transform: translateX(50vw) translateY(-20px); }
+            100% { transform: translateX(110vw) translateY(0); }
+        }
+
+        /* Active Glow Animations */
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.8)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 30px rgba(56, 189, 248, 1)); transform: scale(1.03); }
+        }
+
+        .active-node {
+            animation: pulseGlow 2s infinite;
+            border-color: #38bdf8 !important;
+            background: rgba(56, 189, 248, 0.25) !important;
+        }
+
+        /* Moving sync data packets */
+        .sync-packet {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            box-shadow: 0 0 20px currentColor;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        /* Dash animation for optical cables */
+        .cable-dash {
+            stroke-dasharray: 8;
+            animation: dash 1.2s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -16; }
+        }
+
+        /* Tab button active state */
+        .tab-btn.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-color: #60a5fa;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-6 flex flex-col justify-between relative overflow-x-hidden select-none">
+
+    <div id="clouds-bg" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <i class="fa-solid fa-cloud cloud-particle text-8xl" style="top: 10%; animation-delay: 0s;"></i>
+        <i class="fa-solid fa-cloud cloud-particle text-9xl" style="top: 40%; animation-delay: -8s; animation-duration: 35s;"></i>
+        <i class="fa-solid fa-cloud cloud-particle text-7xl" style="top: 70%; animation-delay: -15s; animation-duration: 28s;"></i>
+    </div>
+
+    <header class="max-w-7xl mx-auto w-full glass-box rounded-3xl p-4 sm:p-5 mb-6 relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Title & Badge -->
+        <div class="flex items-center gap-4">
+            <div class="bg-gradient-to-tr from-blue-500 via-emerald-400 to-yellow-400 p-3.5 rounded-2xl shadow-xl flex items-center justify-center">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-950"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-2xl sm:text-3xl font-display font-bold bg-gradient-to-r from-blue-400 via-sky-300 to-emerald-300 bg-clip-text text-transparent">
+                        La Nube & Google Drive
+                    </h1>
+                    <span class="px-2.5 py-0.5 bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 font-bold rounded-full text-xs">1º ESO</span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-300 font-medium">Tecnología y Digitalización · Esquema Interactivo de Aula</p>
+            </div>
+        </div>
+
+        <!-- Classroom Control Mode Selector -->
+        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full md:w-auto">
+            <button onclick="switchView('explore')" id="btn-explore" class="tab-btn active px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-600 transition flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-sitemap"></i>
+                <span>Esquema Red</span>
+            </button>
+            <button onclick="switchView('concepts')" id="btn-concepts" class="tab-btn px-4 py-2.5 rounded-xl text-sm font-bold border border-slate-600 transition flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Conceptos</span>
+            </button>
+            <button onclick="startPresentation()" class="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl text-sm transition shadow-lg shadow-amber-500/20 flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-chalkboard-user text-base"></i>
+                <span>Modo Lección</span>
+            </button>
+            <button onclick="openQuiz()" class="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-purple-500/20 flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-gamepad"></i>
+                <span>Mini-Quiz</span>
+            </button>
+        </div>
+    </header>
+
+    <div id="presentation-bar" class="max-w-7xl mx-auto w-full mb-4 glass-box rounded-2xl p-3 border-amber-500/50 bg-amber-500/10 hidden flex-wrap items-center justify-between gap-3 z-20">
+        <div class="flex items-center gap-3">
+            <span class="px-3 py-1 bg-amber-400 text-slate-950 font-bold text-xs rounded-full">MODO LECCIÓN</span>
+            <span id="lesson-step-indicator" class="text-amber-200 font-bold text-sm sm:text-base">Paso 1 de 4: ¿Qué es la Nube?</span>
+        </div>
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <button onclick="prevLessonStep()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-base rounded-xl border border-slate-600 shadow-md flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-arrow-left"></i> Anterior
+            </button>
+            <button onclick="nextLessonStep()" class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-bold text-base rounded-xl shadow-lg flex items-center gap-2 cursor-pointer">
+                Siguiente <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button onclick="exitPresentation()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl text-xs font-bold border border-slate-700">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <main id="view-explore" class="max-w-7xl mx-auto w-full flex-1 flex flex-col justify-center relative z-10 mb-6">
+        <div class="glass-box rounded-3xl p-4 sm:p-8 min-h-[460px] flex flex-col justify-between relative overflow-hidden">
+            
+            <!-- SVG Network Cables Layer -->
+            <svg id="network-svg" class="absolute inset-0 w-full h-full pointer-events-none z-0">
+                <path id="cable-pc" class="stroke-sky-500/40" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path id="cable-mobile" class="stroke-emerald-500/40" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path id="cable-tablet" class="stroke-purple-500/40" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>
+
+            <!-- Top Header Action inside Canvas -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 z-10 mb-4">
+                <div class="text-center sm:text-left">
+                    <h2 class="text-xl sm:text-2xl font-bold font-display text-sky-300 flex items-center gap-2 justify-center sm:justify-start">
+                        <i class="fa-solid fa-network-wired"></i> Sincronización Multidispositivo en Tiempo Real
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-300">Haz clic en cualquier dispositivo o en la Nube central para simular el envío de archivos.</p>
+                </div>
+                <button onclick="triggerGlobalSync()" class="px-5 py-2.5 bg-gradient-to-r from-sky-400 to-blue-600 hover:from-sky-300 hover:to-blue-500 text-slate-950 font-extrabold rounded-2xl shadow-xl shadow-sky-500/20 active:scale-95 transition flex items-center gap-2 text-sm sm:text-base cursor-pointer">
+                    <i class="fa-solid fa-rotate text-lg animate-spin" style="animation-duration: 4s;"></i>
+                    <span>¡Sincronizar Todo!</span>
+                </button>
+            </div>
+
+            <!-- Interactive Graphic Nodes Diagram -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-auto z-10 relative">
+                
+                <!-- Left Column: Devices (PC & Mobile) -->
+                <div class="flex flex-col justify-around gap-6">
+                    <!-- Node: Portátil Instituto -->
+                    <div id="node-pc" onclick="selectDevice('pc')" class="glass-card p-4 sm:p-5 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-sky-400 group">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-2xl sm:text-3xl shrink-0 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-laptop"></i>
+                        </div>
+                        <div>
+                            <span class="px-2 py-0.5 bg-sky-400/20 text-sky-300 text-xs font-bold rounded-full">Portátil del Cole</span>
+                            <h3 class="text-base sm:text-lg font-bold font-display text-white mt-0.5">Google Docs / Trabajos</h3>
+                            <p class="text-xs text-slate-300">Escribes tu redacción en clase.</p>
+                        </div>
+                    </div>
+
+                    <!-- Node: Móvil Personal -->
+                    <div id="node-mobile" onclick="selectDevice('mobile')" class="glass-card p-4 sm:p-5 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-emerald-400 group">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl sm:text-3xl shrink-0 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                        </div>
+                        <div>
+                            <span class="px-2 py-0.5 bg-emerald-400/20 text-emerald-300 text-xs font-bold rounded-full">Móvil en Casa</span>
+                            <h3 class="text-base sm:text-lg font-bold font-display text-white mt-0.5">Fotos y Esquemas</h3>
+                            <p class="text-xs text-slate-300">Subes la foto del mapa mental.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Column: THE CLOUD / GOOGLE DRIVE CENTER -->
+                <div class="flex flex-col items-center justify-center py-4">
+                    <div id="node-cloud" onclick="selectDevice('cloud')" class="glass-card p-6 sm:p-8 rounded-3xl flex flex-col items-center text-center cursor-pointer border-4 border-sky-400/50 bg-slate-900/80 shadow-2xl hover:border-yellow-400 group relative">
+                        <!-- Animated Cloud Icon with Google Drive Colors -->
+                        <div class="relative mb-3">
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-blue-500 via-emerald-400 to-yellow-400 p-1 flex items-center justify-center shadow-2xl group-hover:rotate-6 transition">
+                                <div class="w-full h-full bg-slate-950 rounded-[22px] flex items-center justify-center text-4xl sm:text-5xl text-sky-400">
+                                    <i class="fa-solid fa-cloud text-sky-400"></i>
+                                </div>
+                            </div>
+                            <!-- Small Google Drive Badge -->
+                            <div class="absolute -bottom-2 -right-2 bg-yellow-400 text-slate-950 p-2 rounded-xl text-lg font-black shadow-lg">
+                                <i class="fa-solid fa-hard-drive"></i>
+                            </div>
+                        </div>
+
+                        <span class="px-3 py-1 bg-yellow-400/20 text-yellow-300 text-xs font-extrabold rounded-full mb-1">
+                            CENTRO DE DATOS
+                        </span>
+                        <h3 class="text-xl sm:text-2xl font-bold font-display text-white">Google Drive</h3>
+                        <p class="text-xs text-slate-300 mt-1 max-w-[200px]">Tu mochila virtual guardada en servidores seguros.</p>
+                    </div>
+                </div>
+
+                <!-- Right Column: Tablet & School PC -->
+                <div class="flex flex-col justify-around gap-6">
+                    <!-- Node: Tablet -->
+                    <div id="node-tablet" onclick="selectDevice('tablet')" class="glass-card p-4 sm:p-5 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-purple-400 group">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl sm:text-3xl shrink-0 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-tablet-screen-button"></i>
+                        </div>
+                        <div>
+                            <span class="px-2 py-0.5 bg-purple-400/20 text-purple-300 text-xs font-bold rounded-full">Tablet / Otro PC</span>
+                            <h3 class="text-base sm:text-lg font-bold font-display text-white mt-0.5">Presentaciones</h3>
+                            <p class="text-xs text-slate-300">Expones en clase sin pendrive.</p>
+                        </div>
+                    </div>
+
+                    <!-- Informative Tip Card -->
+                    <div class="glass-card p-4 rounded-2xl border-amber-400/30 bg-amber-500/10">
+                        <div class="flex items-center gap-2 text-amber-300 font-bold text-xs mb-1">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>¿SABÍAS QUÉ?</span>
+                        </div>
+                        <p class="text-xs text-slate-300">
+                            Si se te rompe la tablet o pierdes el móvil, <strong>no pierdes nada</strong>. Todo sigue a salvo en tu cuenta de Google Drive.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Dynamic Packet Animation Canvas Container -->
+            <div id="packet-layer" class="absolute inset-0 pointer-events-none z-20"></div>
+
+            <!-- Dynamic Interactive Status Bar -->
+            <div id="status-bar" class="z-10 mt-4 p-3.5 bg-slate-900/90 rounded-2xl border border-slate-700 text-center font-mono text-xs sm:text-sm text-sky-300 flex items-center justify-center gap-3">
+                <span id="status-pulse" class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="status-text" class="font-semibold text-slate-200">
+                    Haz clic en cualquier dispositivo para enviar un archivo a la Nube.
+                </span>
+            </div>
+        </div>
+    </main>
+
+    <section id="view-concepts" class="max-w-7xl mx-auto w-full flex-1 hidden z-10 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Card 1: ¿Qué es la Nube? -->
+            <div class="glass-box p-6 rounded-3xl border-t-4 border-blue-400 flex flex-col justify-between">
+                <div>
+                    <div class="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-3xl mb-4">
+                        <i class="fa-solid fa-cloud"></i>
+                    </div>
+                    <span class="text-xs font-bold text-blue-400 tracking-wider">CONCEPTO 1</span>
+                    <h2 class="text-2xl font-bold font-display text-white mb-2">¿Qué es la Nube?</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                        Imagina un <strong>guardamuebles gigante en Internet</strong>. En lugar de guardar tus fotos o trabajos en la memoria de tu ordenador o en un pendrive USB, los guardas en súper ordenadores hiperseguros llamadas <strong>servidores</strong>.
+                    </p>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-yellow-400 text-lg"></i>
+                    <span>Accedes desde cualquier sitio usando tu usuario y contraseña.</span>
+                </div>
+            </div>
+
+            <!-- Card 2: ¿Qué es Google Drive? -->
+            <div class="glass-box p-6 rounded-3xl border-t-4 border-emerald-400 flex flex-col justify-between">
+                <div>
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl mb-4">
+                        <i class="fa-solid fa-box-archive"></i>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-400 tracking-wider">CONCEPTO 2</span>
+                    <h2 class="text-2xl font-bold font-display text-white mb-2">¿Qué es Google Drive?</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                        Es tu <strong>mochila virtual personal</strong> de Google. Te da un espacio propio donde puedes organizar tus carpetas de asignaturas, guardar archivos y crear documentos de texto (Docs) o presentaciones (Slides) directamente online.
+                    </p>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk text-emerald-400 text-lg"></i>
+                    <span>¡Guardado automático! No existe el botón de 'Guardar', se guarda solo al escribir.</span>
+                </div>
+            </div>
+
+            <!-- Card 3: ¿Para qué sirve en tu día a día? -->
+            <div class="glass-box p-6 rounded-3xl border-t-4 border-amber-400 flex flex-col justify-between">
+                <div>
+                    <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-3xl mb-4">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+                    <span class="text-xs font-bold text-amber-400 tracking-wider">APLICACIÓN PRÁCTICA</span>
+                    <h2 class="text-2xl font-bold font-display text-white mb-2">3 Ventajas de Aula</h2>
+                    <ul class="space-y-2.5 text-xs sm:text-sm text-slate-300 mb-4">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                            <span><strong>Trabajo en Equipo:</strong> Varios alumnos editáis el mismo documento a la vez en grupo.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                            <span><strong>Sin Pendrives:</strong> Adiós a "me he olvidado el USB en casa" o "se ha roto mi pincho".</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-emerald-400 mt-1"></i>
+                            <span><strong>Historial de Versiones:</strong> Si borras algo por error, puedes volver atrás en el tiempo.</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 text-xs text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left text-amber-400 text-lg"></i>
+                    <span>¡Recupera cualquier cambio borrado por error!</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="detail-panel" class="max-w-7xl mx-auto w-full glass-box rounded-3xl p-5 mb-6 z-10 border-l-4 border-sky-400">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div id="detail-icon-box" class="w-12 h-12 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-2xl shrink-0">
+                    <i id="detail-icon" class="fa-solid fa-circle-info"></i>
+                </div>
+                <div>
+                    <h3 id="detail-title" class="text-lg sm:text-xl font-bold font-display text-white">Explicación del Proceso</h3>
+                    <p id="detail-desc" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        Haz clic en los diferentes elementos del diagrama interactivo para ver cómo viaja la información desde tu clase de Tecnología hasta los servidores de Google.
+                    </p>
+                </div>
+            </div>
+            <div id="detail-tag" class="px-3 py-1 bg-slate-800 text-slate-300 rounded-xl text-xs font-mono border border-slate-700 shrink-0">
+                Información de Aula
+            </div>
+        </div>
+    </section>
+
+    <div id="quiz-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-box max-w-xl w-full rounded-3xl p-6 sm:p-8 border-2 border-purple-500/40 shadow-2xl relative">
+            
+            <!-- Close Button -->
+            <button onclick="closeQuiz()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-xl cursor-pointer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Quiz Header -->
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl shadow-lg">
+                    <i class="fa-solid fa-award text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold font-display text-white">Mini-Quiz de Repaso</h3>
+                    <p class="text-xs text-purple-300">4 Preguntas rápidas para comprobar lo aprendido</p>
+                </div>
+            </div>
+
+            <!-- Question Step Container -->
+            <div id="quiz-content">
+                
+                <!-- Question 1 -->
+                <div id="q1" class="quiz-q">
+                    <span class="text-xs font-bold text-purple-400">PREGUNTA 1 DE 4</span>
+                    <h4 class="text-base sm:text-lg font-bold text-white my-2">
+                        1. ¿Los archivos de la Nube flotan literalmente en el aire dentro del cielo?
+                    </h4>
+                    <div class="space-y-2.5 my-4">
+                        <button onclick="answerQuiz(1, false, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> Verdadero: Son ondas que flotan en el aire.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                        <button onclick="answerQuiz(1, true, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> Falso: Se guardan en ordenadores gigantes en la Tierra llamados Servidores.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div id="q2" class="quiz-q hidden">
+                    <span class="text-xs font-bold text-purple-400">PREGUNTA 2 DE 4</span>
+                    <h4 class="text-base sm:text-lg font-bold text-white my-2">
+                        2. Si estás haciendo un trabajo en Google Docs y se apaga el ordenador del instituto por sorpresa...
+                    </h4>
+                    <div class="space-y-2.5 my-4">
+                        <button onclick="answerQuiz(2, false, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> Pierdes todo el trabajo porque no le diste a guardar.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                        <button onclick="answerQuiz(2, true, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> No pasa nada, se ha ido guardando letra por letra automáticamente.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div id="q3" class="quiz-q hidden">
+                    <span class="text-xs font-bold text-purple-400">PREGUNTA 3 DE 4</span>
+                    <h4 class="text-base sm:text-lg font-bold text-white my-2">
+                        3. ¿Puedes trabajar con 3 compañeros a la vez en la misma presentación de Google Drive?
+                    </h4>
+                    <div class="space-y-2.5 my-4">
+                        <button onclick="answerQuiz(3, true, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> ¡Sí! Todos podemos editar al mismo tiempo desde distintas casas o portátiles.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                        <button onclick="answerQuiz(3, false, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> No, hay que enviárselo uno a uno por correo electrónico.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question 4 -->
+                <div id="q4" class="quiz-q hidden">
+                    <span class="text-xs font-bold text-purple-400">PREGUNTA 4 DE 4</span>
+                    <h4 class="text-base sm:text-lg font-bold text-white my-2">
+                        4. ¿Qué necesitas para acceder a tus archivos de Google Drive desde el móvil de un amigo?
+                    </h4>
+                    <div class="space-y-2.5 my-4">
+                        <button onclick="answerQuiz(4, false, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> Llevar un cable especial conectado a mi ordenador de casa.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                        <button onclick="answerQuiz(4, true, this)" class="w-full text-left p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-sm font-semibold border border-slate-700 transition flex items-center justify-between">
+                            <span> Tan solo iniciar sesión con mi usuario y contraseña de Google.</span>
+                            <i class="fa-regular fa-circle text-slate-500"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Completion Screen -->
+                <div id="quiz-complete" class="hidden text-center py-6">
+                    <div class="w-20 h-20 bg-amber-400/20 text-amber-400 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 animate-bounce">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h4 class="text-3xl font-bold font-display text-white mb-2">¡Enhorabuena, Clase!</h4>
+                    <p class="text-sm text-slate-300 mb-6">Habéis superado el Mini-Quiz de La Nube y Google Drive con éxito.</p>
+                    <button onclick="resetQuiz()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-2xl text-sm shadow-xl transition cursor-pointer">
+                        Repetir Preguntas
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Quiz Feedback Alert -->
+            <div id="quiz-msg" class="mt-3 p-3 rounded-xl text-xs font-semibold text-center hidden"></div>
+        </div>
+    </div>
+
+    <footer class="max-w-7xl mx-auto w-full text-center text-xs text-slate-400 py-3 z-10">
+        Material Didáctico interactivo para 1º ESO · Tecnología y Digitalización
+    </footer>
+
+    <script>
+        // Device Info Data
+        const deviceData = {
+            pc: {
+                title: "Portátil del Instituto",
+                icon: "fa-laptop",
+                colorClass: "text-sky-400",
+                bgClass: "bg-sky-500/20",
+                borderColor: "border-sky-400",
+                tag: "Dispositivo de Aula",
+                desc: "Cuando escribes un trabajo en clase de Tecnología en un documento de Google Docs, cada letra viaja por el WiFi del instituto dividida en pequeños paquetes digitales hacia la Nube."
+            },
+            mobile: {
+                title: "Móvil Personal",
+                icon: "fa-mobile-screen-button",
+                colorClass: "text-emerald-400",
+                bgClass: "bg-emerald-500/20",
+                borderColor: "border-emerald-400",
+                tag: "Dispositivo Móvil",
+                desc: "Sacas una foto de los apuntes o del trabajo de laboratorio con tu móvil. Al subirla a la app de Google Drive, la foto se guarda en la Nube y la tienes disponible de inmediato en el ordenador."
+            },
+            tablet: {
+                title: "Tablet / Presentaciones",
+                icon: "fa-tablet-screen-button",
+                colorClass: "text-purple-400",
+                bgClass: "bg-purple-500/20",
+                borderColor: "border-purple-400",
+                tag: "Dispositivo de Exposición",
+                desc: "Llegas a la clase de Lengua o Historia para hacer tu exposición. Abres tu presentación de Google Slides desde la tablet sin necesidad de haber traído ningún pendrive ni cable."
+            },
+            cloud: {
+                title: "Servidores de Google Drive (La Nube)",
+                icon: "fa-cloud",
+                colorClass: "text-yellow-400",
+                bgClass: "bg-yellow-500/20",
+                borderColor: "border-yellow-400",
+                tag: "Centro de Almacenamiento Remoto",
+                desc: "Es el corazón de todo. Edificios gigantescos llenos de súper ordenadores (servidores) con discos duros masivos que protegen tu información las 24 horas del día con copias de seguridad."
+            }
+        };
+
+        // Lesson Steps for Presentation Mode
+        const lessonSteps = [
+            {
+                indicator: "Paso 1 de 4: ¿Qué es la Nube?",
+                device: "cloud",
+                msg: "La Nube es un conjunto de ordenadores gigantes (servidores) repartidos por el mundo que guardan tus datos para que no dependas de la memoria de tu ordenador."
+            },
+            {
+                indicator: "Paso 2 de 4: Dispositivos Conectados",
+                device: "pc",
+                msg: "Empiezas tu trabajo en el portátil del instituto. Todo lo que escribes sale hacia Internet al instante."
+            },
+            {
+                indicator: "Paso 3 de 4: Sincronización en Tiempo Real",
+                device: "mobile",
+                msg: "Si abres la app en el móvil desde casa, verás exactamente lo mismo que escribiste en el instituto."
+            },
+            {
+                indicator: "Paso 4 de 4: Google Drive y Trabajo en Grupo",
+                device: "tablet",
+                msg: "Puedes compartir la carpeta con tus compañeros y editar la misma presentación a la vez desde distintas casas."
+            }
+        ];
+
+        let currentLessonIndex = 0;
+        let isSyncing = false;
+
+        // View Switcher Function
+        function switchView(viewName) {
+            document.getElementById('view-explore').classList.add('hidden');
+            document.getElementById('view-concepts').classList.add('hidden');
+            document.getElementById('btn-explore').classList.remove('active');
+            document.getElementById('btn-concepts').classList.remove('active');
+
+            if (viewName === 'explore') {
+                document.getElementById('view-explore').classList.remove('hidden');
+                document.getElementById('btn-explore').classList.add('active');
+                setTimeout(drawCables, 50);
+            } else if (viewName === 'concepts') {
+                document.getElementById('view-concepts').classList.remove('hidden');
+                document.getElementById('btn-concepts').classList.add('active');
+            }
+        }
+
+        // Select Device Node
+        function selectDevice(key) {
+            ['node-pc', 'node-mobile', 'node-tablet', 'node-cloud'].forEach(id => {
+                document.getElementById(id).classList.remove('active-node');
+            });
+
+            const nodeId = key === 'cloud' ? 'node-cloud' : `node-${key}`;
+            document.getElementById(nodeId).classList.add('active-node');
+
+            const info = deviceData[key];
+            const panel = document.getElementById('detail-panel');
+
+            panel.className = `max-w-7xl mx-auto w-full glass-box rounded-3xl p-5 mb-6 z-10 border-l-4 ${info.borderColor}`;
+            document.getElementById('detail-icon-box').className = `w-12 h-12 rounded-2xl ${info.bgClass} ${info.colorClass} flex items-center justify-center text-2xl shrink-0`;
+            document.getElementById('detail-icon').className = `fa-solid ${info.icon}`;
+            document.getElementById('detail-title').innerText = info.title;
+            document.getElementById('detail-desc').innerText = info.desc;
+            document.getElementById('detail-tag').innerText = info.tag;
+
+            // Trigger packet animation from selected node to cloud
+            if (key !== 'cloud') {
+                animatePacketBetween(key, 'cloud', '#38bdf8');
+            }
+        }
+
+        // SVG Cable Connection Drawing
+        function drawCables() {
+            const svg = document.getElementById('network-svg');
+            const svgRect = svg.getBoundingClientRect();
+
+            const getCenter = (id) => {
+                const el = document.getElementById(id);
+                const rect = el.getBoundingClientRect();
+                return {
+                    x: rect.left + rect.width / 2 - svgRect.left,
+                    y: rect.top + rect.height / 2 - svgRect.top
+                };
+            };
+
+            const cloud = getCenter('node-cloud');
+            const pc = getCenter('node-pc');
+            const mobile = getCenter('node-mobile');
+            const tablet = getCenter('node-tablet');
+
+            document.getElementById('cable-pc').setAttribute('d', `M ${pc.x} ${pc.y} Q ${(pc.x + cloud.x)/2} ${pc.y - 30} ${cloud.x} ${cloud.y}`);
+            document.getElementById('cable-mobile').setAttribute('d', `M ${mobile.x} ${mobile.y} Q ${(mobile.x + cloud.x)/2} ${mobile.y + 30} ${cloud.x} ${cloud.y}`);
+            document.getElementById('cable-tablet').setAttribute('d', `M ${tablet.x} ${tablet.y} Q ${(tablet.x + cloud.x)/2} ${tablet.y - 20} ${cloud.x} ${cloud.y}`);
+        }
+
+        window.addEventListener('resize', drawCables);
+        window.addEventListener('load', () => {
+            drawCables();
+            selectDevice('cloud');
+        });
+
+        // Packet Animation Logic
+        function animatePacketBetween(fromKey, toKey, colorHex = '#38bdf8') {
+            const svg = document.getElementById('network-svg');
+            const svgRect = svg.getBoundingClientRect();
+
+            const getCenter = (id) => {
+                const el = document.getElementById(id);
+                const rect = el.getBoundingClientRect();
+                return {
+                    x: rect.left + rect.width / 2 - svgRect.left,
+                    y: rect.top + rect.height / 2 - svgRect.top
+                };
+            };
+
+            const fromPos = getCenter(fromKey === 'cloud' ? 'node-cloud' : `node-${fromKey}`);
+            const toPos = getCenter(toKey === 'cloud' ? 'node-cloud' : `node-${toKey}`);
+
+            const layer = document.getElementById('packet-layer');
+            const packet = document.createElement('div');
+            packet.className = 'sync-packet';
+            packet.style.backgroundColor = colorHex;
+            packet.innerHTML = '<i class="fa-solid fa-file-arrow-up text-slate-950"></i>';
+            layer.appendChild(packet);
+
+            const duration = 800; // ms
+            const startTime = performance.now();
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Smooth easing
+                const ease = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+
+                const curX = fromPos.x + (toPos.x - fromPos.x) * ease;
+                const curY = fromPos.y + (toPos.y - fromPos.y) * ease;
+
+                packet.style.left = `${curX - 14}px`;
+                packet.style.top = `${curY - 14}px`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    packet.remove();
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        // Global Sync Simulation
+        function triggerGlobalSync() {
+            if (isSyncing) return;
+            isSyncing = true;
+
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = "¡Sincronizando todos los dispositivos con Google Drive en la Nube!";
+
+            animatePacketBetween('pc', 'cloud', '#38bdf8');
+            setTimeout(() => animatePacketBetween('mobile', 'cloud', '#34d399'), 200);
+            setTimeout(() => animatePacketBetween('tablet', 'cloud', '#c084fc'), 400);
+
+            setTimeout(() => {
+                animatePacketBetween('cloud', 'pc', '#facc15');
+                animatePacketBetween('cloud', 'mobile', '#facc15');
+                animatePacketBetween('cloud', 'tablet', '#facc15');
+            }, 900);
+
+            setTimeout(() => {
+                statusText.innerText = "Sincronización completada. Todos los dispositivos tienen la última versión del archivo.";
+                isSyncing = false;
+            }, 1800);
+        }
+
+        // Presentation / Lesson Mode Functions
+        function startPresentation() {
+            switchView('explore');
+            document.getElementById('presentation-bar').classList.remove('hidden');
+            currentLessonIndex = 0;
+            renderLessonStep();
+        }
+
+        function exitPresentation() {
+            document.getElementById('presentation-bar').classList.add('hidden');
+        }
+
+        function renderLessonStep() {
+            const step = lessonSteps[currentLessonIndex];
+            document.getElementById('lesson-step-indicator').innerText = step.indicator;
+            selectDevice(step.device);
+            document.getElementById('status-text').innerText = step.msg;
+        }
+
+        function nextLessonStep() {
+            if (currentLessonIndex < lessonSteps.length - 1) {
+                currentLessonIndex++;
+                renderLessonStep();
+            }
+        }
+
+        function prevLessonStep() {
+            if (currentLessonIndex > 0) {
+                currentLessonIndex--;
+                renderLessonStep();
+            }
+        }
+
+        // Quiz Interactive Logic
+        function openQuiz() {
+            document.getElementById('quiz-modal').classList.remove('hidden');
+            resetQuiz();
+        }
+
+        function closeQuiz() {
+            document.getElementById('quiz-modal').classList.add('hidden');
+        }
+
+        function answerQuiz(qNum, isCorrect, btnElement) {
+            const msg = document.getElementById('quiz-msg');
+            msg.classList.remove('hidden', 'bg-emerald-500/20', 'text-emerald-300', 'bg-red-500/20', 'text-red-300');
+
+            if (isCorrect) {
+                msg.classList.add('bg-emerald-500/20', 'text-emerald-300');
+                msg.innerHTML = '<i class="fa-solid fa-circle-check"></i> ¡Respuesta Correcta! Muy bien pensado.';
+
+                setTimeout(() => {
+                    msg.classList.add('hidden');
+                    document.getElementById(`q${qNum}`).classList.add('hidden');
+
+                    if (qNum < 4) {
+                        document.getElementById(`q${qNum + 1}`).classList.remove('hidden');
+                    } else {
+                        document.getElementById('quiz-complete').classList.remove('hidden');
+                    }
+                }, 1200);
+
+            } else {
+                msg.classList.add('bg-red-500/20', 'text-red-300');
+                msg.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Casi... Revisa bien la idea y prueba otra vez.';
+            }
+        }
+
+        function resetQuiz() {
+            document.getElementById('quiz-complete').classList.add('hidden');
+            document.getElementById('quiz-msg').classList.add('hidden');
+            document.getElementById('q1').classList.remove('hidden');
+            document.getElementById('q2').classList.add('hidden');
+            document.getElementById('q3').classList.add('hidden');
+            document.getElementById('q4').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
